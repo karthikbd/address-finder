@@ -1,16 +1,37 @@
 """
 address_finder — self-contained libpostal Python bindings.
 Data is decompressed once to ~/.cache/address_finder/ on first import.
+Libpostal is initialised lazily on first call to parse/expand.
 """
-from address_finder._init_data import ensure_data
-from address_finder._lib_loader import init_libpostal, get_lib
+__version__ = "1.0.0"
 
-# Decompress bundled data on first use, then cache forever
-_DATADIR = ensure_data()
-_LIB     = init_libpostal(_DATADIR)
+_DATADIR = None
+_LIB     = None
 
-from address_finder.parser   import parse_address
-from address_finder.expander import expand_address
+
+def _ensure_loaded():
+    """Initialise libpostal on first use (lazy, thread-safe enough for typical use)."""
+    global _DATADIR, _LIB
+    if _LIB is not None:
+        return
+    from address_finder._init_data import ensure_data
+    from address_finder._lib_loader import init_libpostal
+    _DATADIR = ensure_data()
+    _LIB     = init_libpostal(_DATADIR)
+
+
+def parse_address(address: str):
+    """Parse an address string into labelled components."""
+    _ensure_loaded()
+    from address_finder.parser import parse_address as _parse
+    return _parse(address)
+
+
+def expand_address(address: str):
+    """Expand address abbreviations/variants."""
+    _ensure_loaded()
+    from address_finder.expander import expand_address as _expand
+    return _expand(address)
+
 
 __all__ = ["parse_address", "expand_address"]
-__version__ = "1.0.0"
