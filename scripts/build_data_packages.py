@@ -19,10 +19,12 @@ Output directory: OUT_BASE (under package_build)
 import hashlib
 import json
 import lzma
+import math
 import shutil
+import tempfile
 import textwrap
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 # ── Configuration ────────────────────────────────────────────────────────────
 
@@ -51,25 +53,44 @@ DATA_FILES = [
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def compress_file(src: Path) -> bytes:
-    """Read and lzma-compress a file, return compressed bytes."""
-    print(f"  Compressing {src.name} ({src.stat().st_size // 1024 // 1024} MB)...", flush=True)
-    data = src.read_bytes()
-    compressed = lzma.compress(data, format=lzma.FORMAT_XZ, preset=1)
-    ratio = len(compressed) * 100 // len(data)
-    print(f"    → {len(compressed) // 1024 // 1024} MB ({ratio}%)", flush=True)
-    return compressed
+def compress_file(src: Path, tmp_dir: Path) -> Tuple[Path, int]:
+    """Stream-compress *src* using lzma/xz into a temp file.
+
+    Peak RAM: O(READ_BUF) ≈ 4 MB — independent of file size.
+
+    Returns:
+        (compressed_path, compressed_size_bytes)
+    """
+    READ_BUF = 4 * 1024 * 1024  # 4 MB read buffer
+    original_size = src.stat().st_size
+    print(f"  Compressing {src.name} ({original_size // 1024 // 1024} MB)...", flush=True)
+    tmp_path = tmp_dir / (src.name + ".xz")
+    with open(src, "rb") as f_in, \
+         lzma.open(tmp_path, "wb", format=lzma.FORMAT_XZ, preset=1) as f_out:
+        while True:
+            buf = f_in.read(READ_BUF)
+            if not buf:
+                break
+            f_out.write(buf)
+    comp_size = tmp_path.stat().st_size
+    ratio = comp_size * 100 // original_size
+    print(f"    → {comp_size // 1024 // 1024} MB ({ratio}%)", flush=True)
+    return tmp_path, comp_size
 
 
-def split_chunks(data: bytes, chunk_size: int):
-    """Yield (index, chunk_bytes) for each chunk."""
-    total = len(data)
+def iter_file_chunks(src_path: Path, chunk_size: int):
+    """Yield (index, chunk_bytes) by reading *src_path* in *chunk_size* pieces.
+
+    Peak RAM per iteration: O(chunk_size) — never loads the full file.
+    """
     idx = 0
-    offset = 0
-    while offset < total:
-        yield idx, data[offset : offset + chunk_size]
-        offset += chunk_size
-        idx += 1
+    with open(src_path, "rb") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            yield idx, chunk
+            idx += 1
 
 
 def sha256_hex(data: bytes) -> str:
@@ -302,18 +323,23 @@ def create_meta_package(out_base: Path, manifest: List[Dict]):
 
                 print(f"  Assembling {{canonical_name}}…", end=" ", flush=True)
 
-                # Collect compressed bytes from all chunk packages
-                compressed_parts: list[bytes] = []
-                for mod_name in info["chunk_packages"]:
-                    mod = importlib.import_module(mod_name)
-                    chunk_path = mod.chunk_path()
-                    compressed_parts.append(chunk_path.read_bytes())
-
-                compressed = b"".join(compressed_parts)
-                print(f"decompressing {{len(compressed)//1024//1024}} MB…", end=" ", flush=True)
-                data = lzma.decompress(compressed, format=lzma.FORMAT_XZ)
-                dest.write_bytes(data)
-                print(f"done ({{len(data)//1024//1024}} MB)")
+                # Stream-decompress: one chunk loaded at a time — O(chunk_size) peak RAM.
+                tmp_dest = dest.with_suffix(dest.suffix + ".tmp")
+                decomp = lzma.LZMADecompressor(format=lzma.FORMAT_XZ)
+                total_out = 0
+                try:
+                    with open(tmp_dest, "wb") as _out_f:
+                        for mod_name in info["chunk_packages"]:
+                            mod = importlib.import_module(mod_name)
+                            out_bytes = decomp.decompress(mod.chunk_path().read_bytes())
+                            if out_bytes:
+                                _out_f.write(out_bytes)
+                                total_out += len(out_bytes)
+                    tmp_dest.rename(dest)
+                except Exception:
+                    tmp_dest.unlink(missing_ok=True)
+                    raise
+                print(f"done ({{total_out//1024//1024}} MB)")
 
             stamp.write_text("assembled")
             print(f"address-finder-data: all files ready at {{cache_dir}}")
@@ -426,28 +452,27 @@ def main():
         original_size = src.stat().st_size
         print(f"\n=== {canonical_name} ({original_size // 1024 // 1024} MB) ===")
 
-        compressed = compress_file(src)
-        comp_size = len(compressed)
-        chunks = list(split_chunks(compressed, CHUNK_SIZE))
-        n_chunks = len(chunks)
-        print(f"  Split into {n_chunks} chunk(s) of ≤{CHUNK_SIZE // 1024 // 1024} MB")
+        with tempfile.TemporaryDirectory() as _tmp:
+            comp_path, comp_size = compress_file(src, Path(_tmp))
+            n_chunks = math.ceil(comp_size / CHUNK_SIZE)
+            print(f"  Split into {n_chunks} chunk(s) of ≤{CHUNK_SIZE // 1024 // 1024} MB")
 
-        for file_chunk_idx, chunk_bytes in chunks:
-            sha = sha256_hex(chunk_bytes)
-            meta = create_chunk_package(
-                out_base=OUT_BASE,
-                chunk_idx=global_chunk_idx,
-                canonical_name=canonical_name,
-                file_chunk_index=file_chunk_idx,
-                total_file_chunks=n_chunks,
-                chunk_bytes=chunk_bytes,
-                chunk_sha256=sha,
-                file_compressed_size=comp_size,
-                file_original_size=original_size,
-            )
-            meta["global_chunk_idx"] = global_chunk_idx
-            manifest.append(meta)
-            global_chunk_idx += 1
+            for file_chunk_idx, chunk_bytes in iter_file_chunks(comp_path, CHUNK_SIZE):
+                sha = sha256_hex(chunk_bytes)
+                meta = create_chunk_package(
+                    out_base=OUT_BASE,
+                    chunk_idx=global_chunk_idx,
+                    canonical_name=canonical_name,
+                    file_chunk_index=file_chunk_idx,
+                    total_file_chunks=n_chunks,
+                    chunk_bytes=chunk_bytes,
+                    chunk_sha256=sha,
+                    file_compressed_size=comp_size,
+                    file_original_size=original_size,
+                )
+                meta["global_chunk_idx"] = global_chunk_idx
+                manifest.append(meta)
+                global_chunk_idx += 1
 
     print(f"\n=== Creating meta-package ({global_chunk_idx} total chunks) ===")
     create_meta_package(OUT_BASE, manifest)
