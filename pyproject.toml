@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "address-finder"
-version = "1.0.2"
+version = "1.0.3"
 authors = [{name = "Karthikeyan Balasundaram"}]
 description = "Self-contained offline address parser powered by libpostal (global model)"
 readme = "README.md"
@@ -32,6 +32,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.24",
+    "address-finder-data>=1.0.0",
 ]
 
 [project.optional-dependencies]

@@ -3,7 +3,7 @@ address_finder — offline address parsing and expansion.
 Data is decompressed once to ~/.cache/address_finder/ on first import.
 The library is initialised lazily on first call to parse/expand.
 """
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 _DATADIR = None
 _LIB     = None
