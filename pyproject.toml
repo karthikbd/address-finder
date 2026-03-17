@@ -4,17 +4,44 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "address-finder"
-version = "1.0.1"
+version = "1.0.2"
+authors = [{name = "Karthikeyan Balasundaram"}]
 description = "Self-contained offline address parser powered by libpostal (global model)"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = {text = "MIT"}
+keywords = [
+    "address", "address parser", "address parsing", "offline",
+    "libpostal", "geocode", "street address", "postal address",
+    "nlp", "natural language processing",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Linguistic",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+]
 dependencies = [
     "numpy>=1.24",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest", "dawgdic"]
+
+[project.urls]
+Homepage = "https://github.com/karthikbd/address-finder"
+Repository = "https://github.com/karthikbd/address-finder"
+"Bug Tracker" = "https://github.com/karthikbd/address-finder/issues"
+Documentation = "https://github.com/karthikbd/address-finder#readme"
 
 [tool.setuptools.packages.find]
 where = ["."]

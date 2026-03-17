@@ -154,10 +154,24 @@ def create_chunk_package(
         [project]
         name = "{pkg_name}"
         version = "{VERSION}"
+        authors = [{{name = "Karthikeyan Balasundaram"}}]
         description = "address-finder data chunk p{chunk_idx:02d} — contains {canonical_name} part {file_chunk_index+1}/{total_file_chunks}"
         readme = "README.md"
         license = {{text = "MIT"}}
         requires-python = ">=3.8"
+        keywords = ["address-finder", "address parser", "offline", "libpostal", "data"]
+        classifiers = [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "Topic :: Scientific/Engineering :: GIS",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Operating System :: OS Independent",
+        ]
+
+        [project.urls]
+        Homepage = "https://github.com/karthikbd/address-finder"
+        Repository = "https://github.com/karthikbd/address-finder"
 
         [tool.setuptools.packages.find]
         where = ["."]
@@ -321,13 +335,29 @@ def create_meta_package(out_base: Path, manifest: List[Dict]):
         [project]
         name = "address-finder-data"
         version = "{VERSION}"
+        authors = [{{name = "Karthikeyan Balasundaram"}}]
         description = "Companion data package for address-finder (model files)"
         readme = "README.md"
         license = {{text = "MIT"}}
         requires-python = ">=3.8"
+        keywords = ["address-finder", "address parser", "offline", "libpostal", "data"]
+        classifiers = [
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "Topic :: Scientific/Engineering :: GIS",
+            "License :: OSI Approved :: MIT License",
+            "Programming Language :: Python :: 3",
+            "Operating System :: OS Independent",
+        ]
         dependencies = [
         {dep_list}
         ]
+
+        [project.urls]
+        Homepage = "https://github.com/karthikbd/address-finder"
+        Repository = "https://github.com/karthikbd/address-finder"
+        "Bug Tracker" = "https://github.com/karthikbd/address-finder/issues"
+        Documentation = "https://github.com/karthikbd/address-finder#readme"
 
         [tool.setuptools.packages.find]
         where = ["."]
