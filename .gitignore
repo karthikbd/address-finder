@@ -1,0 +1,23 @@
+# Build artifacts
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Data-dist directory (large binary chunks — built separately, uploaded to PyPI directly)
+address-finder-data-dist/
+
+# Linux native binary (built during CI, not stored in repo)
+address_finder/_libs/libpostal.so.1
+address_finder/_libs/libpostal.so
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# pytest
+.pytest_cache/
+*.log

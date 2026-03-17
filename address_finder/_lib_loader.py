@@ -60,25 +60,21 @@ def init_libpostal(datadir: str) -> ctypes.CDLL:
     lib.libpostal_teardown.argtypes = []
 
     # ── parser ────────────────────────────────────────────────────
-    lib.libpostal_parse_address.restype  = ctypes.POINTER(ctypes.c_char_p)
-    lib.libpostal_parse_address.argtypes = [
-        ctypes.c_char_p,
-        ctypes.POINTER(_ParseOptions),
-        ctypes.POINTER(ctypes.c_size_t),
-    ]
-    lib.libpostal_get_default_parse_options.restype  = _ParseOptions
-    lib.libpostal_get_default_parse_options.argtypes = []
+    # libpostal_address_parser_response_t: { size_t num_components; char** components; char** labels; }
+    lib.libpostal_get_address_parser_default_options.restype  = _ParseOptions
+    lib.libpostal_get_address_parser_default_options.argtypes = []
+
+    lib.libpostal_parse_address.restype  = ctypes.POINTER(_ParseResponse)
+    lib.libpostal_parse_address.argtypes = [ctypes.c_char_p, _ParseOptions]
 
     lib.libpostal_address_parser_response_destroy.restype  = None
-    lib.libpostal_address_parser_response_destroy.argtypes = [
-        ctypes.POINTER(ctypes.c_char_p), ctypes.c_size_t
-    ]
+    lib.libpostal_address_parser_response_destroy.argtypes = [ctypes.POINTER(_ParseResponse)]
 
     # ── expander ──────────────────────────────────────────────────
     lib.libpostal_expand_address.restype  = ctypes.POINTER(ctypes.c_char_p)
     lib.libpostal_expand_address.argtypes = [
         ctypes.c_char_p,
-        _NormalizeOptions,
+        _NormalizeOptions,                # passed by value
         ctypes.POINTER(ctypes.c_size_t),
     ]
     lib.libpostal_get_default_options.restype  = _NormalizeOptions
@@ -115,6 +111,14 @@ class _ParseOptions(ctypes.Structure):
     _fields_ = [
         ("language",    ctypes.c_char_p),
         ("country",     ctypes.c_char_p),
+    ]
+
+class _ParseResponse(ctypes.Structure):
+    """libpostal_address_parser_response_t"""
+    _fields_ = [
+        ("num_components", ctypes.c_size_t),
+        ("components",     ctypes.POINTER(ctypes.c_char_p)),
+        ("labels",         ctypes.POINTER(ctypes.c_char_p)),
     ]
 
 class _NormalizeOptions(ctypes.Structure):

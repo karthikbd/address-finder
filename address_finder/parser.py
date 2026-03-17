@@ -3,17 +3,6 @@ import ctypes
 from typing import List, Tuple
 from address_finder._lib_loader import get_lib, _ParseOptions
 
-# Labels emitted by libpostal's CRF parser
-LABELS = [
-    "house", "house_number", "po_box", "building",
-    "entrance", "staircase", "level", "unit",
-    "road", "metro_station", "suburb", "city_district",
-    "city", "island", "state_district", "state",
-    "country_region", "country", "world_region",
-    "postcode", "website", "telephone", "email",
-    "attention", "care_of", "near", "intersection",
-]
-
 
 def parse_address(
     address: str,
@@ -33,28 +22,27 @@ def parse_address(
     country  : ISO 3166-1 alpha-2 hint, e.g. 'us', 'de'  (optional)
     """
     lib = get_lib()
-    opts = lib.libpostal_get_default_parse_options()
+    opts = lib.libpostal_get_address_parser_default_options()
     if language:
         opts.language = language.encode()
     if country:
         opts.country = country.encode()
 
-    num_components = ctypes.c_size_t(0)
-    result_ptr = lib.libpostal_parse_address(
-        address.encode("utf-8"),
-        ctypes.byref(opts),
-        ctypes.byref(num_components),
-    )
-    if not result_ptr:
+    # libpostal_parse_address returns libpostal_address_parser_response_t*
+    # struct { size_t num_components; char** components; char** labels; }
+    response = lib.libpostal_parse_address(address.encode("utf-8"), opts)
+    if not response:
         return []
 
-    n = num_components.value
-    # libpostal returns alternating value/label pairs
-    pairs = []
-    for i in range(n):
-        value = result_ptr[i * 2].decode("utf-8")     if result_ptr[i * 2]     else ""
-        label = result_ptr[i * 2 + 1].decode("utf-8") if result_ptr[i * 2 + 1] else ""
-        pairs.append((value, label))
+    resp = response.contents
+    n = resp.num_components
+    pairs = [
+        (
+            resp.labels[i].decode("utf-8")     if resp.labels[i]     else "",
+            resp.components[i].decode("utf-8") if resp.components[i] else "",
+        )
+        for i in range(n)
+    ]
 
-    lib.libpostal_address_parser_response_destroy(result_ptr, n)
+    lib.libpostal_address_parser_response_destroy(response)
     return pairs
