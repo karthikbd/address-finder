@@ -12,8 +12,8 @@ def parse_address(
     """
     Parse a raw address string into labeled components.
 
-    Returns a list of (value, label) tuples, e.g.:
-        [('781', 'house_number'), ('franklin ave', 'road'), ...]
+    Returns a list of (label, value) tuples, e.g.:
+        [('house_number', '781'), ('road', 'franklin ave'), ...]
 
     Parameters
     ----------

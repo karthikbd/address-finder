@@ -20,18 +20,18 @@ def _ensure_loaded():
     _LIB     = _init_lib(_DATADIR)
 
 
-def parse_address(address: str):
-    """Parse an address string into labelled components."""
+def parse_address(address: str, language: str | None = None, country: str | None = None):
+    """Parse an address string into labelled (label, value) components."""
     _ensure_loaded()
     from address_finder.parser import parse_address as _parse
-    return _parse(address)
+    return _parse(address, language=language, country=country)
 
 
-def expand_address(address: str):
-    """Expand address abbreviations/variants."""
+def expand_address(address: str, languages: list | None = None) -> list:
+    """Expand address abbreviations/variants into canonical forms."""
     _ensure_loaded()
     from address_finder.expander import expand_address as _expand
-    return _expand(address)
+    return _expand(address, languages=languages)
 
 
 __all__ = ["parse_address", "expand_address"]
