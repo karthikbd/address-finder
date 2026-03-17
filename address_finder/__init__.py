@@ -1,7 +1,7 @@
 """
-address_finder — self-contained libpostal Python bindings.
+address_finder — offline address parsing and expansion.
 Data is decompressed once to ~/.cache/address_finder/ on first import.
-Libpostal is initialised lazily on first call to parse/expand.
+The library is initialised lazily on first call to parse/expand.
 """
 __version__ = "1.0.0"
 
@@ -10,14 +10,14 @@ _LIB     = None
 
 
 def _ensure_loaded():
-    """Initialise libpostal on first use (lazy, thread-safe enough for typical use)."""
+    """Initialise the native library on first use (lazy, thread-safe enough for typical use)."""
     global _DATADIR, _LIB
     if _LIB is not None:
         return
     from address_finder._init_data import ensure_data
-    from address_finder._lib_loader import init_libpostal
+    from address_finder._lib_loader import _init_lib
     _DATADIR = ensure_data()
-    _LIB     = init_libpostal(_DATADIR)
+    _LIB     = _init_lib(_DATADIR)
 
 
 def parse_address(address: str):

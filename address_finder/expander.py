@@ -1,4 +1,4 @@
-"""expand_address() — wraps libpostal_expand_address via ctypes."""
+"""expand_address() — wraps the native expand function via ctypes."""
 import ctypes
 from typing import List
 from address_finder._lib_loader import get_lib, _NormalizeOptions

@@ -1,12 +1,12 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Build libpostal for Windows using WSL, then download model data.
+    Build the address-finder native library for Windows using WSL, then download model data.
     Run from the address-finder/ root directory.
 
 .DESCRIPTION
-    Step 1: Uses WSL (Ubuntu) to compile libpostal and produce postal.dll
-    Step 2: Downloads the ~3.5 GB libpostal model data into /tmp/postal_raw
+    Step 1: Uses WSL (Ubuntu) to compile the native library and produce postal.dll
+    Step 2: Downloads the ~3.5 GB address-finder model data into /tmp/postal_raw
     Step 3: Copies postal.dll into address_finder/_libs/
     Step 4: Prints next steps for quantize → compress → build wheel
 
@@ -65,10 +65,10 @@ wsl bash -c @'
     echo "  Build deps: OK"
 '@
 
-# ── 2. Clone & compile libpostal ──────────────────────────────────────────
+# ── 2. Clone & compile native library ───────────────────────────
 
 Write-Host ""
-Write-Host "[2/5] Cloning & compiling libpostal (this takes ~5-10 min)..." -ForegroundColor Yellow
+Write-Host "[2/5] Cloning & compiling address-finder native library (this takes ~5-10 min)..." -ForegroundColor Yellow
 
 # Convert Windows path to WSL path
 $WSL_ROOT = wsl wslpath -u $ROOT.Replace('\', '/')
@@ -114,7 +114,7 @@ Write-Host "  Compile: OK" -ForegroundColor Green
 # ── 3. Download model data ────────────────────────────────────────────────
 
 Write-Host ""
-Write-Host "[3/5] Downloading libpostal model data (~3.5 GB)..." -ForegroundColor Yellow
+Write-Host "[3/5] Downloading address-finder model data (~3.5 GB)..." -ForegroundColor Yellow
 Write-Host "      This is a one-time download." -ForegroundColor DarkGray
 
 wsl bash -c @'

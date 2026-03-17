@@ -1,4 +1,4 @@
-"""Unit tests for parse_address (requires installed libpostal + data)."""
+"""Unit tests for parse_address."""
 import pytest
 from address_finder import parse_address
 

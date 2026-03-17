@@ -1,5 +1,5 @@
 """
-Skip all tests when libpostal shared library has not been built yet.
+Skip all tests when the native shared library has not been built yet.
 Build with:   python scripts\\full_build_windows.py --skip-data
 
 Model data is downloaded automatically on first test run (~1.9 GB, one-time).

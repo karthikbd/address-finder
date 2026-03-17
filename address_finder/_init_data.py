@@ -1,5 +1,5 @@
 """
-Provide libpostal model data on first import (~1.9 GB, one-time setup).
+Provide address-finder model data on first import (~1.9 GB, one-time setup).
 
 Priority order:
   1. Already assembled/downloaded → instant return.
@@ -64,7 +64,7 @@ def _try_companion_package() -> bool:
 
 def ensure_data() -> str:
     """
-    Return path to the libpostal data directory, setting it up on first call.
+    Return path to the address-finder data directory, setting it up on first call.
 
     1. If cache stamp exists → instant return (already ready).
     2. If address-finder-data package is installed → assemble from chunks.

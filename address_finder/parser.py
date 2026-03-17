@@ -1,4 +1,4 @@
-"""parse_address() — wraps libpostal_parse_address via ctypes."""
+"""parse_address() — wraps the native parse function via ctypes."""
 import ctypes
 from typing import List, Tuple
 from address_finder._lib_loader import get_lib, _ParseOptions
@@ -28,7 +28,7 @@ def parse_address(
     if country:
         opts.country = country.encode()
 
-    # libpostal_parse_address returns libpostal_address_parser_response_t*
+    # parse_address returns address_parser_response_t*
     # struct { size_t num_components; char** components; char** labels; }
     response = lib.libpostal_parse_address(address.encode("utf-8"), opts)
     if not response:

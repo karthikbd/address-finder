@@ -1,5 +1,5 @@
 """
-Load the bundled libpostal shared library via ctypes and wire up
+Load the bundled shared library via ctypes and wire up
 all function signatures. No C compiler required at install time.
 """
 import ctypes
@@ -23,7 +23,7 @@ def _find_bundled_lib() -> str:
     name = candidates.get(platform, "libpostal.so.1")
     path = pathlib.Path(str(lib_dir)) / name
     if not path.exists():
-        # fallback: try system libpostal
+        # fallback: try system-installed shared library
         system = ctypes.util.find_library("postal")
         if system:
             return system
@@ -34,7 +34,7 @@ def _find_bundled_lib() -> str:
     return str(path)
 
 
-def init_libpostal(datadir: str) -> ctypes.CDLL:
+def _init_lib(datadir: str) -> ctypes.CDLL:
     """Load shared lib, set up function sigs, init with bundled datadir."""
     global _lib_instance
     if _lib_instance is not None:
@@ -60,7 +60,7 @@ def init_libpostal(datadir: str) -> ctypes.CDLL:
     lib.libpostal_teardown.argtypes = []
 
     # ── parser ────────────────────────────────────────────────────
-    # libpostal_address_parser_response_t: { size_t num_components; char** components; char** labels; }
+    # address_parser_response_t: { size_t num_components; char** components; char** labels; }
     lib.libpostal_get_address_parser_default_options.restype  = _ParseOptions
     lib.libpostal_get_address_parser_default_options.argtypes = []
 
@@ -102,11 +102,11 @@ def init_libpostal(datadir: str) -> ctypes.CDLL:
 
 def get_lib() -> ctypes.CDLL:
     if _lib_instance is None:
-        raise RuntimeError("Call init_libpostal() first.")
+        raise RuntimeError("Library not initialised. Import address_finder first.")
     return _lib_instance
 
 
-# ── ctypes structs matching libpostal.h ───────────────────────────────────
+# ── ctypes structs (native library ABI) ─────────────────────────────────
 class _ParseOptions(ctypes.Structure):
     _fields_ = [
         ("language",    ctypes.c_char_p),
@@ -114,7 +114,7 @@ class _ParseOptions(ctypes.Structure):
     ]
 
 class _ParseResponse(ctypes.Structure):
-    """libpostal_address_parser_response_t"""
+    """address_parser_response_t"""
     _fields_ = [
         ("num_components", ctypes.c_size_t),
         ("components",     ctypes.POINTER(ctypes.c_char_p)),

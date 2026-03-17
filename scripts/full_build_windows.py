@@ -3,7 +3,7 @@ Full build orchestrator for address-finder — Windows edition.
 Runs entirely from Python on Windows; uses WSL only for DLL compilation.
 
 Steps:
-  1. Build postal.dll via MinGW cross-compile in WSL (with LIBPOSTAL_EXPORTS)
+  1. Build postal.dll via MinGW cross-compile in WSL (with native exports flag)
   2. Build wheel (python -m build)
 
 Model data (~1 GB) is downloaded automatically at runtime on first import

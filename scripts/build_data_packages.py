@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Build address-finder-data chunk packages from libpostal data files.
+Build address-finder-data chunk packages from address-finder model files.
 
 Usage (from Windows, calls WSL python3):
   wsl -d Ubuntu-20.04 -u root python3 /mnt/c/Users/karthikeyan1/PNC/package_build/scripts/build_data_packages.py
 
 The script:
-  1. Reads libpostal data files from DATA_SRC
+  1. Reads address-finder data files from DATA_SRC
   2. Compresses each with lzma (stdlib, no extra deps)
   3. Splits into CHUNK_SIZE byte chunks
   4. Creates one Python package dir per chunk
@@ -321,7 +321,7 @@ def create_meta_package(out_base: Path, manifest: List[Dict]):
         [project]
         name = "address-finder-data"
         version = "{VERSION}"
-        description = "Companion data package for address-finder (libpostal model files)"
+        description = "Companion data package for address-finder (model files)"
         readme = "README.md"
         license = {{text = "MIT"}}
         requires-python = ">=3.8"
@@ -338,7 +338,7 @@ def create_meta_package(out_base: Path, manifest: List[Dict]):
     (pkg_dir / "README.md").write_text(textwrap.dedent(f"""\
         # address-finder-data
 
-        Companion data package (~1.9 GB of libpostal model files) for
+        Companion data package (~1.9 GB of model files) for
         [address-finder](https://pypi.org/project/address-finder/).
 
         ## Install
