@@ -6,10 +6,15 @@ on:
       - "v*.*.*"
   workflow_dispatch:
 
+# Minimal default — jobs opt in to only what they need.
+permissions: read-all
+
 jobs:
-  # ── Windows ──────────────────────────────────────────────────────────────
+  # ── Windows ────────────────────────────────────────────
   build-windows:
     runs-on: windows-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -50,6 +55,8 @@ jobs:
   # ── Linux (manylinux2014 x86_64) ─────────────────────────────────────────
   build-linux:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     container:
       image: quay.io/pypa/manylinux2014_x86_64
     steps:
@@ -101,6 +108,7 @@ jobs:
 
     permissions:
       id-token: write   # Required for OIDC trusted publishing
+      contents: read
 
     steps:
       - name: Download all wheels
