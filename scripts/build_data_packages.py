@@ -366,7 +366,7 @@ def create_meta_package(out_base: Path, manifest: List[Dict]):
         readme = "README.md"
         license = {{text = "MIT"}}
         requires-python = ">=3.8"
-        keywords = ["address-finder", "address parser", "offline", "libpostal", "data"]
+        keywords = ["address-finder", "address parser", "offline", "libpostal", "data", "geocode"]
         classifiers = [
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers",
