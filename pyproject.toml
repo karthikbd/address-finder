@@ -40,6 +40,7 @@ dev = ["pytest", "dawgdic"]
 
 [project.urls]
 Homepage = "https://github.com/karthikbd/address-finder"
+"Source Code" = "https://github.com/karthikbd/address-finder"
 Repository = "https://github.com/karthikbd/address-finder"
 "Bug Tracker" = "https://github.com/karthikbd/address-finder/issues"
 Documentation = "https://github.com/karthikbd/address-finder#readme"
